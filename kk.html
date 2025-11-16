@@ -1,0 +1,2707 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC28 AI预测系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #000;
+            color: #fff;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            background-color: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        h1, h2, h3 {
+            color: #fff;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        h1 {
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+        }
+        
+        .result-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #333;
+            border-radius: 5px;
+        }
+        
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #222;
+        }
+        
+        .result-label {
+            font-weight: bold;
+            color: #ccc;
+        }
+        
+        .result-value {
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .confidence {
+            color: #888;
+            font-size: 0.9em;
+        }
+        
+        .prediction-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .prediction-item {
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .prediction-title {
+            font-size: 0.9em;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+        
+        .prediction-content {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .copy-section {
+            background-color: #222;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        
+        .copy-text {
+            font-family: monospace;
+            font-size: 1.1em;
+            padding: 10px;
+            background-color: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+            margin-top: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .copy-text:hover {
+            background-color: #333;
+        }
+        
+        .stats-section {
+            margin-top: 30px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 12px;
+        }
+        
+        .stat-title {
+            font-size: 0.9em;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        
+        button {
+            background-color: #222;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background-color: #333;
+            border-color: #666;
+        }
+        
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .tail-prediction {
+            background-color: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .tail-numbers {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .tail-number {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #444;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .algorithm-info {
+            background-color: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+        
+        .algorithm-list {
+            margin-top: 10px;
+            padding-left: 20px;
+        }
+        
+        .algorithm-list li {
+            margin-bottom: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .prediction-grid, .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tail-numbers {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>PC28 AI预测系统 v2.0</h1>
+            <p>基于多算法融合的AI预测系统 | 科学可靠 + 智能判断</p>
+        </div>
+        
+        <div class="button-container">
+            <button id="fetchData">获取最新数据并预测</button>
+            <button id="showStats">显示统计信息</button>
+        </div>
+        
+        <div id="loading" class="loading" style="display: none;">
+            正在获取数据并执行AI分析...
+        </div>
+        
+        <div id="results" style="display: none;">
+            <div class="result-section">
+                <h2>AI智能分析预测结果</h2>
+                
+                <div class="prediction-grid">
+                    <div class="prediction-item">
+                        <div class="prediction-title">双组预测</div>
+                        <div class="prediction-content" id="finalResult"></div>
+                        <div class="confidence" id="baseConfidence"></div>
+                    </div>
+                    
+                    <div class="prediction-item">
+                        <div class="prediction-title">杀组推荐</div>
+                        <div class="prediction-content" id="killResult"></div>
+                        <div class="confidence" id="killConfidence"></div>
+                    </div>
+                    
+                    <div class="prediction-item">
+                        <div class="prediction-title">特码推荐</div>
+                        <div class="prediction-content" id="specialCodes"></div>
+                    </div>
+                    
+                    <div class="prediction-item">
+                        <div class="prediction-title">球预测综合置信度</div>
+                        <div class="prediction-content" id="ballConfidence"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="result-section">
+                <h3>球预测分析</h3>
+                
+                <div class="result-row">
+                    <span class="result-label">预测A球</span>
+                    <span class="result-value" id="ballA"></span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="result-label">预测B球</span>
+                    <span class="result-value" id="ballB"></span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="result-label">预测C球</span>
+                    <span class="result-value" id="ballC"></span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="result-label">预测和值</span>
+                    <span class="result-value" id="predictedSum"></span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="result-label">类型验证</span>
+                    <span class="result-value" id="typeVerification"></span>
+                </div>
+            </div>
+            
+            <div class="tail-prediction">
+                <h3>尾数预测</h3>
+                <p>基于历史数据分析和尾数模式识别</p>
+                <div class="tail-numbers" id="tailNumbers">
+                    <!-- 尾数将通过JavaScript动态生成 -->
+                </div>
+            </div>
+            
+            <div class="copy-section">
+                <h3>最终结果（点击复制）</h3>
+                <div class="copy-text" id="finalOutput"></div>
+            </div>
+        </div>
+        
+        <div id="statistics" class="stats-section" style="display: none;">
+            <h2>近期统计</h2>
+            <div class="stats-grid" id="statsGrid">
+                <!-- 统计信息将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <div class="container" style="margin-top: 30px; text-align: center; font-size: 0.9em; color: #888;">
+            <p>温馨提示: 彩票有风险，投注需谨慎</p>
+            <p>感谢使用PC28 AI智能预测系统 v2.0</p>
+        </div>
+    </div>
+
+    <script>
+        // PC28预测器类 - 增强算法
+        class PC28Predictor {
+            constructor() {
+                // 球预测参数
+                this.ball_analysis = {
+                    'ball_distributions': [new Array(10).fill(0), new Array(10).fill(0), new Array(10).fill(0)],
+                    'ball_transitions': [
+                        Array.from({length: 10}, () => new Array(10).fill(0)),
+                        Array.from({length: 10}, () => new Array(10).fill(0)),
+                        Array.from({length: 10}, () => new Array(10).fill(0))
+                    ],
+                    'ball_sequences': [[], [], []],
+                    'type_history': [],
+                    'kill_history': [],
+                    'time_patterns': []
+                };
+                
+                // 动态数据窗口
+                this.data_window = [];
+                
+                // 时间分析参数
+                this.time_analysis = {
+                    'hourly_patterns': new Array(24).fill(0),
+                    'daily_patterns': new Array(7).fill(0),
+                    'recent_trends': [],
+                    'volatility_index': 0.5,
+                    'trend_strength': 0.5,
+                    'momentum_index': 0.5
+                };
+                
+                // 算法状态
+                this.algorithm_state = {
+                    'last_prediction': null,
+                    'last_kill': null,
+                    'prediction_count': {},
+                    'kill_count': {},
+                    'type_balance': {"大单": 0, "大双": 0, "小单": 0, "小双": 0},
+                    'success_rate': 0.5,
+                    'adaptation_factor': 1.0,
+                    'pattern_memory': [],
+                    'trend_memory': [],
+                    'strong_type': null,
+                    'ai_analysis_state': {},
+                    'code_analysis_history': [],
+                    'algorithm_weights': this.initializeAlgorithmWeights(),
+                    'performance_history': []
+                };
+                
+                // AI学习参数
+                this.ai_parameters = {
+                    'learning_rate': 0.1,
+                    'exploration_rate': 0.15,
+                    'pattern_threshold': 0.75,
+                    'confidence_decay': 0.92,
+                    'trend_sensitivity': 1.3,
+                    'momentum_weight': 0.8,
+                    'code_analysis_depth': 20,
+                    'ensemble_size': 7,
+                    'neural_network_depth': 3
+                };
+                
+                // 趋势分析参数
+                this.trend_analysis = {
+                    'short_term_trend': 0,
+                    'medium_term_trend': 0,
+                    'long_term_trend': 0,
+                    'trend_consistency': 0.5,
+                    'volatility_level': 0.5,
+                    'pattern_recognition': {},
+                    'code_frequency': new Array(28).fill(0),
+                    'arima_parameters': {p: 2, d: 1, q: 1},
+                    'hidden_states': []
+                };
+                
+                // 定义特码分类
+                this.code_categories = {
+                    "小单": [1, 3, 5, 7, 9, 11, 13],
+                    "小双": [0, 2, 4, 6, 8, 10, 12],
+                    "大单": [15, 17, 19, 21, 23, 25, 27],
+                    "大双": [14, 16, 18, 20, 22, 24, 26]
+                };
+                
+                // 尾数分析
+                this.tail_analysis = {
+                    'tail_frequency': new Array(10).fill(0),
+                    'tail_patterns': {},
+                    'recent_tails': [],
+                    'tail_type_mapping': this.generateTailTypeMapping()
+                };
+                
+                // 神经网络参数
+                this.neural_network = {
+                    'weights': this.initializeNeuralWeights(),
+                    'biases': this.initializeNeuralBiases(),
+                    'activation_history': [],
+                    'learning_rates': [0.01, 0.005, 0.001]
+                };
+            }
+            
+            // 初始化算法权重
+            initializeAlgorithmWeights() {
+                return {
+                    'markov_chain': 1.0,
+                    'time_series': 1.0,
+                    'neural_network': 1.2,
+                    'ensemble_learning': 1.1,
+                    'bayesian_inference': 1.0,
+                    'genetic_algorithm': 0.9,
+                    'svm_classifier': 1.0,
+                    'random_forest': 1.1,
+                    'clustering': 0.8
+                };
+            }
+            
+            // 初始化神经网络权重
+            initializeNeuralWeights() {
+                // 简单神经网络: 输入层(10) -> 隐藏层(8) -> 输出层(4)
+                return {
+                    'input_hidden': Array.from({length: 10}, () => 
+                        Array.from({length: 8}, () => (Math.random() - 0.5) * 0.1)),
+                    'hidden_output': Array.from({length: 8}, () => 
+                        Array.from({length: 4}, () => (Math.random() - 0.5) * 0.1))
+                };
+            }
+            
+            // 初始化神经网络偏置
+            initializeNeuralBiases() {
+                return {
+                    'hidden': new Array(8).fill(0.1),
+                    'output': new Array(4).fill(0.1)
+                };
+            }
+            
+            // 生成尾数到类型的映射
+            generateTailTypeMapping() {
+                const mapping = {};
+                for (let sum = 0; sum <= 27; sum++) {
+                    const tail = sum % 10;
+                    const type = this.sumToType(sum);
+                    if (!mapping[tail]) {
+                        mapping[tail] = {};
+                    }
+                    mapping[tail][type] = (mapping[tail][type] || 0) + 1;
+                }
+                return mapping;
+            }
+            
+            // 计算斜率方法
+            calculateSlope(x, y) {
+                const n = x.length;
+                if (n < 2) return 0;
+                
+                const sumX = x.reduce((a, b) => a + b, 0);
+                const sumY = y.reduce((a, b) => a + b, 0);
+                const sumXY = x.reduce((sum, val, i) => sum + val * y[i], 0);
+                const sumX2 = x.reduce((sum, val) => sum + val * val, 0);
+                
+                const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                return slope;
+            }
+            
+            // 获取彩票数据
+            async fetchLotteryData(limit = 100) {
+                try {
+                    const response = await fetch(`https://pc28.help/kj.json?limit=${limit}`);
+                    const data = await response.json();
+                    return data.data || [];
+                } catch (error) {
+                    console.error('获取开奖数据失败:', error);
+                    return [];
+                }
+            }
+            
+            // 解析网络开奖数据
+            parseNetworkData(rawData) {
+                const periods = [];
+                
+                for (const item of rawData) {
+                    try {
+                        const numbersStr = item.opennum || '';
+                        const numbers = numbersStr.includes(',') ? 
+                            numbersStr.split(',') : numbersStr.split('+');
+                        const [num1, num2, num3] = numbers.map(Number);
+                        const sumVal = num1 + num2 + num3;
+                        
+                        let lotteryType;
+                        if (sumVal <= 13) {
+                            lotteryType = (sumVal % 2 === 0) ? "小双" : "小单";
+                        } else {
+                            lotteryType = (sumVal % 2 === 0) ? "大双" : "大单";
+                        }
+                        
+                        // 解析时间
+                        const openTime = item.opentime || '';
+                        let hour, weekday;
+                        
+                        if (openTime) {
+                            try {
+                                const timeObj = new Date(openTime.replace(' ', 'T'));
+                                hour = timeObj.getHours();
+                                weekday = timeObj.getDay();
+                            } catch (e) {
+                                hour = Math.floor(Math.random() * 24);
+                                weekday = Math.floor(Math.random() * 7);
+                            }
+                        } else {
+                            hour = Math.floor(Math.random() * 24);
+                            weekday = Math.floor(Math.random() * 7);
+                        }
+                        
+                        periods.push({
+                            'period': item.qihao || '',
+                            'numbers': [num1, num2, num3],
+                            'sum': sumVal,
+                            'type': lotteryType,
+                            'time': openTime,
+                            'hour': hour,
+                            'weekday': weekday
+                        });
+                    } catch (error) {
+                        console.error('解析数据出错:', error);
+                        continue;
+                    }
+                }
+                
+                return periods;
+            }
+            
+            // 新的杀组算法: (A+B×2)-C=下期不开的组合
+            calculateNewKillType(data) {
+                if (data.length < 3) {
+                    return "小单"; // 默认值
+                }
+                
+                try {
+                    // A = 前一期的期号后三位的中间数
+                    const prevPeriod = data[1].period.toString();
+                    const lastThreeDigits = prevPeriod.slice(-3);
+                    const A = parseInt(lastThreeDigits.charAt(1));
+                    
+                    // B = 前两期的b球 (第二个球)
+                    const B = data[2].numbers[1];
+                    
+                    // C = 最新一期开的和值
+                    const C = data[0].sum;
+                    
+                    // 计算 (A + B×2) - C
+                    const killValue = (A + B * 2) - C;
+                    
+                    // 将结果映射到0-27范围
+                    const normalizedValue = Math.abs(killValue) % 28;
+                    
+                    // 根据和值确定类型
+                    return this.sumToType(normalizedValue);
+                } catch (error) {
+                    console.error('计算新杀组时出错:', error);
+                    return "小单"; // 默认值
+                }
+            }
+            
+            // 分析动态走势
+            analyzeDynamicTrends(data) {
+                if (data.length < 10) return;
+                
+                // 提取和值序列
+                const sums = data.map(item => item.sum);
+                const types = data.map(item => item.type);
+                
+                // 计算不同时间尺度的趋势
+                if (sums.length >= 5) {
+                    this.trend_analysis.short_term_trend = this.calculateTrendDirection(sums.slice(0, 5));
+                }
+                
+                if (sums.length >= 10) {
+                    this.trend_analysis.medium_term_trend = this.calculateTrendDirection(sums.slice(0, 10));
+                }
+                
+                if (sums.length >= 20) {
+                    this.trend_analysis.long_term_trend = this.calculateTrendDirection(sums.slice(0, 20));
+                }
+                
+                // 计算趋势一致性
+                this.calculateTrendConsistency(sums);
+                
+                // 计算波动水平
+                this.calculateVolatilityLevel(sums);
+                
+                // 识别模式
+                this.identifyPatterns(types, sums);
+                
+                // 计算动量指数
+                this.calculateMomentumIndex(data);
+                
+                // 更新特码频率分析
+                this.updateCodeFrequencyAnalysis(data);
+                
+                // 更新尾数分析
+                this.updateTailAnalysis(data);
+                
+                // 执行ARIMA时间序列分析
+                this.performARIMAAnalysis(sums);
+                
+                // 执行隐马尔可夫模型分析
+                this.performHMMAnalysis(types);
+                
+                // 更新神经网络
+                this.updateNeuralNetwork(data);
+            }
+            
+            // 更新尾数分析
+            updateTailAnalysis(data) {
+                if (data.length < 5) return;
+                
+                // 计算尾数频率
+                const tailCounts = new Array(10).fill(0);
+                
+                for (const item of data.slice(0, 50)) {
+                    const tail = item.sum % 10;
+                    tailCounts[tail]++;
+                }
+                
+                const total = tailCounts.reduce((a, b) => a + b, 0);
+                if (total > 0) {
+                    this.tail_analysis.tail_frequency = tailCounts.map(count => count / total);
+                }
+                
+                // 更新近期尾数
+                this.tail_analysis.recent_tails = data.slice(0, 20).map(item => item.sum % 10);
+                
+                // 识别尾数模式
+                this.identifyTailPatterns(this.tail_analysis.recent_tails);
+                
+                // 更新尾数类型映射
+                this.updateTailTypeMapping(data);
+            }
+            
+            // 更新尾数类型映射
+            updateTailTypeMapping(data) {
+                const mapping = {};
+                for (let tail = 0; tail < 10; tail++) {
+                    mapping[tail] = {"大单": 0, "大双": 0, "小单": 0, "小双": 0};
+                }
+                
+                for (const item of data.slice(0, 100)) {
+                    const tail = item.sum % 10;
+                    const type = item.type;
+                    mapping[tail][type]++;
+                }
+                
+                // 归一化
+                for (let tail = 0; tail < 10; tail++) {
+                    const total = Object.values(mapping[tail]).reduce((a, b) => a + b, 0);
+                    if (total > 0) {
+                        for (const type of Object.keys(mapping[tail])) {
+                            mapping[tail][type] /= total;
+                        }
+                    }
+                }
+                
+                this.tail_analysis.tail_type_mapping = mapping;
+            }
+            
+            // 识别尾数模式
+            identifyTailPatterns(tails) {
+                if (tails.length < 8) return;
+                
+                const tailPatterns = {};
+                
+                for (let i = 0; i < tails.length - 3; i++) {
+                    const pattern = tails.slice(i, i + 3).join(',');
+                    const nextTail = tails[i + 3];
+                    
+                    if (!tailPatterns[pattern]) {
+                        tailPatterns[pattern] = [];
+                    }
+                    
+                    tailPatterns[pattern].push(nextTail);
+                }
+                
+                this.tail_analysis.tail_patterns = tailPatterns;
+            }
+            
+            // 预测尾数
+            predictTailNumbers(count = 4) {
+                const tailScores = new Array(10).fill(0);
+                
+                // 1. 基于频率
+                for (let i = 0; i < 10; i++) {
+                    tailScores[i] += this.tail_analysis.tail_frequency[i] * 40;
+                }
+                
+                // 2. 基于遗漏分析
+                const recentTails = this.tail_analysis.recent_tails;
+                for (let i = 0; i < 10; i++) {
+                    if (recentTails.includes(i)) {
+                        const lastIndex = recentTails.lastIndexOf(i);
+                        const omission = recentTails.length - 1 - lastIndex;
+                        tailScores[i] += (omission / recentTails.length) * 30;
+                    } else {
+                        // 从未出现，给高分
+                        tailScores[i] += 35;
+                    }
+                }
+                
+                // 3. 基于模式识别
+                if (recentTails.length >= 3) {
+                    const currentPattern = recentTails.slice(0, 3).join(',');
+                    if (this.tail_analysis.tail_patterns[currentPattern]) {
+                        const patternTails = this.tail_analysis.tail_patterns[currentPattern];
+                        const tailCounts = {};
+                        
+                        for (const tail of patternTails) {
+                            tailCounts[tail] = (tailCounts[tail] || 0) + 1;
+                        }
+                        
+                        for (const [tail, count] of Object.entries(tailCounts)) {
+                            const probability = count / patternTails.length;
+                            tailScores[parseInt(tail)] += probability * 30;
+                        }
+                    }
+                }
+                
+                // 选择得分最高的尾数
+                const tailWithScores = tailScores.map((score, index) => ({tail: index, score}));
+                tailWithScores.sort((a, b) => b.score - a.score);
+                
+                return tailWithScores.slice(0, count).map(item => item.tail);
+            }
+            
+            // 基于尾数预测的双组算法
+            calculateTailBasedDoublePrediction(data) {
+                if (data.length < 10) {
+                    return {finalTypes: ["大单", "大双"], killType: "小单"};
+                }
+                
+                // 预测尾数
+                const predictedTails = this.predictTailNumbers(4);
+                
+                // 计算每个类型的尾数支持度
+                const typeScores = {"大单": 0, "大双": 0, "小单": 0, "小双": 0};
+                
+                for (const tail of predictedTails) {
+                    const tailMapping = this.tail_analysis.tail_type_mapping[tail];
+                    for (const [type, score] of Object.entries(tailMapping)) {
+                        typeScores[type] += score;
+                    }
+                }
+                
+                // 归一化
+                const totalScore = Object.values(typeScores).reduce((a, b) => a + b, 0);
+                if (totalScore > 0) {
+                    for (const type of Object.keys(typeScores)) {
+                        typeScores[type] /= totalScore;
+                    }
+                }
+                
+                // 选择得分最高的两个类型作为双组
+                const sortedTypes = Object.entries(typeScores)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 2)
+                    .map(item => item[0]);
+                
+                // 选择得分最低的类型作为杀组
+                const killType = Object.entries(typeScores)
+                    .sort((a, b) => a[1] - b[1])[0][0];
+                
+                return {
+                    finalTypes: sortedTypes,
+                    killType: killType,
+                    tailBasedScores: typeScores
+                };
+            }
+            
+            // ARIMA时间序列分析
+            performARIMAAnalysis(sums) {
+                if (sums.length < 10) return;
+                
+                // 简化的ARIMA模型实现
+                const p = this.trend_analysis.arima_parameters.p;
+                const d = this.trend_analysis.arima_parameters.d;
+                const q = this.trend_analysis.arima_parameters.q;
+                
+                // 差分处理
+                let diffSeries = [...sums];
+                for (let i = 0; i < d; i++) {
+                    const newDiff = [];
+                    for (let j = 1; j < diffSeries.length; j++) {
+                        newDiff.push(diffSeries[j] - diffSeries[j-1]);
+                    }
+                    diffSeries = newDiff;
+                }
+                
+                // 简单的自回归部分
+                if (diffSeries.length > p) {
+                    let arComponent = 0;
+                    for (let i = 0; i < p; i++) {
+                        arComponent += diffSeries[diffSeries.length - 1 - i] * (0.5 / (i + 1));
+                    }
+                    
+                    // 更新趋势分析
+                    this.trend_analysis.arima_prediction = arComponent;
+                }
+            }
+            
+            // 隐马尔可夫模型分析
+            performHMMAnalysis(types) {
+                if (types.length < 10) return;
+                
+                const states = ["大单", "大双", "小单", "小双"];
+                const transitionCounts = {};
+                
+                // 初始化转移计数
+                for (const fromState of states) {
+                    transitionCounts[fromState] = {};
+                    for (const toState of states) {
+                        transitionCounts[fromState][toState] = 0;
+                    }
+                }
+                
+                // 统计转移次数
+                for (let i = 0; i < types.length - 1; i++) {
+                    const fromState = types[i];
+                    const toState = types[i+1];
+                    if (transitionCounts[fromState] && transitionCounts[fromState][toState] !== undefined) {
+                        transitionCounts[fromState][toState]++;
+                    }
+                }
+                
+                // 计算转移概率
+                const transitionProbabilities = {};
+                for (const fromState of states) {
+                    transitionProbabilities[fromState] = {};
+                    const total = Object.values(transitionCounts[fromState]).reduce((a, b) => a + b, 0);
+                    
+                    if (total > 0) {
+                        for (const toState of states) {
+                            transitionProbabilities[fromState][toState] = transitionCounts[fromState][toState] / total;
+                        }
+                    }
+                }
+                
+                this.trend_analysis.hmm_transitions = transitionProbabilities;
+                this.trend_analysis.hidden_states = this.calculateHiddenStates(types, transitionProbabilities);
+            }
+            
+            // 计算隐藏状态
+            calculateHiddenStates(types, transitions) {
+                const states = ["大单", "大双", "小单", "小双"];
+                const currentType = types[0];
+                
+                // 简化的Viterbi算法实现
+                let maxProb = 0;
+                let bestState = currentType;
+                
+                for (const state of states) {
+                    const prob = transitions[currentType] ? (transitions[currentType][state] || 0) : 0.25;
+                    if (prob > maxProb) {
+                        maxProb = prob;
+                        bestState = state;
+                    }
+                }
+                
+                return [bestState];
+            }
+            
+            // 更新神经网络
+            updateNeuralNetwork(data) {
+                if (data.length < 10) return;
+                
+                // 准备训练数据
+                const trainingData = this.prepareNeuralTrainingData(data);
+                
+                // 简化的神经网络训练
+                for (const example of trainingData.slice(0, 5)) {
+                    this.trainNeuralNetwork(example.inputs, example.outputs);
+                }
+            }
+            
+            // 准备神经网络训练数据
+            prepareNeuralTrainingData(data) {
+                const trainingData = [];
+                
+                for (let i = 0; i < data.length - 1; i++) {
+                    const current = data[i];
+                    const next = data[i+1];
+                    
+                    // 输入特征: 和值, 类型编码, 时间特征等
+                    const inputs = [
+                        current.sum / 27, // 归一化和值
+                        current.numbers[0] / 9,
+                        current.numbers[1] / 9,
+                        current.numbers[2] / 9,
+                        current.hour / 24,
+                        current.weekday / 7,
+                        this.trend_analysis.short_term_trend,
+                        this.trend_analysis.volatility_level,
+                        this.time_analysis.momentum_index,
+                        this.algorithm_state.success_rate
+                    ];
+                    
+                    // 输出: 下一期的类型概率
+                    const typeIndex = {"大单": 0, "大双": 1, "小单": 2, "小双": 3};
+                    const outputs = [0, 0, 0, 0];
+                    outputs[typeIndex[next.type]] = 1;
+                    
+                    trainingData.push({inputs, outputs});
+                }
+                
+                return trainingData;
+            }
+            
+            // 训练神经网络
+            trainNeuralNetwork(inputs, targets) {
+                // 前向传播
+                const hidden = this.neuralForward(inputs, 'input_hidden');
+                const output = this.neuralForward(hidden, 'hidden_output');
+                
+                // 计算误差
+                const outputErrors = output.map((o, i) => targets[i] - o);
+                
+                // 反向传播 (简化版)
+                this.neuralBackward(inputs, hidden, output, outputErrors);
+            }
+            
+            // 神经网络前向传播
+            neuralForward(inputs, weightKey) {
+                const weights = this.neural_network.weights[weightKey];
+                const biases = weightKey === 'input_hidden' ? this.neural_network.biases.hidden : this.neural_network.biases.output;
+                
+                const outputs = [];
+                for (let i = 0; i < weights[0].length; i++) {
+                    let sum = biases[i];
+                    for (let j = 0; j < inputs.length; j++) {
+                        sum += inputs[j] * weights[j][i];
+                    }
+                    // ReLU激活函数
+                    outputs.push(Math.max(0, sum));
+                }
+                
+                return outputs;
+            }
+            
+            // 神经网络反向传播 (简化版)
+            neuralBackward(inputs, hidden, output, outputErrors) {
+                // 简化的权重更新
+                const learningRate = 0.01;
+                
+                // 更新隐藏层到输出层权重
+                for (let i = 0; i < this.neural_network.weights.hidden_output.length; i++) {
+                    for (let j = 0; j < this.neural_network.weights.hidden_output[i].length; j++) {
+                        this.neural_network.weights.hidden_output[i][j] += 
+                            learningRate * outputErrors[j] * hidden[i];
+                    }
+                }
+                
+                // 更新输入层到隐藏层权重
+                const hiddenErrors = new Array(hidden.length).fill(0);
+                for (let i = 0; i < hidden.length; i++) {
+                    for (let j = 0; j < outputErrors.length; j++) {
+                        hiddenErrors[i] += outputErrors[j] * this.neural_network.weights.hidden_output[i][j];
+                    }
+                    // ReLU导数
+                    hiddenErrors[i] *= hidden[i] > 0 ? 1 : 0;
+                }
+                
+                for (let i = 0; i < this.neural_network.weights.input_hidden.length; i++) {
+                    for (let j = 0; j < this.neural_network.weights.input_hidden[i].length; j++) {
+                        this.neural_network.weights.input_hidden[i][j] += 
+                            learningRate * hiddenErrors[j] * inputs[i];
+                    }
+                }
+            }
+            
+            // 神经网络预测
+            neuralNetworkPrediction(data) {
+                if (data.length < 5) return {"大单": 0.25, "大双": 0.25, "小单": 0.25, "小双": 0.25};
+                
+                const current = data[0];
+                
+                // 准备输入特征
+                const inputs = [
+                    current.sum / 27,
+                    current.numbers[0] / 9,
+                    current.numbers[1] / 9,
+                    current.numbers[2] / 9,
+                    current.hour / 24,
+                    current.weekday / 7,
+                    this.trend_analysis.short_term_trend,
+                    this.trend_analysis.volatility_level,
+                    this.time_analysis.momentum_index,
+                    this.algorithm_state.success_rate
+                ];
+                
+                // 前向传播
+                const hidden = this.neuralForward(inputs, 'input_hidden');
+                const output = this.neuralForward(hidden, 'hidden_output');
+                
+                // Softmax激活
+                const expOutput = output.map(Math.exp);
+                const sumExp = expOutput.reduce((a, b) => a + b, 0);
+                const probabilities = expOutput.map(exp => exp / sumExp);
+                
+                return {
+                    "大单": probabilities[0],
+                    "大双": probabilities[1],
+                    "小单": probabilities[2],
+                    "小双": probabilities[3]
+                };
+            }
+            
+            // 计算趋势方向
+            calculateTrendDirection(dataSeries) {
+                if (dataSeries.length < 3) return 0;
+                
+                const x = Array.from({length: dataSeries.length}, (_, i) => i);
+                const y = dataSeries;
+                
+                // 简单线性回归计算斜率
+                const slope = this.calculateSlope(x, y);
+                
+                // 归一化斜率
+                return Math.tanh(slope / 5.0);
+            }
+            
+            // 计算趋势一致性
+            calculateTrendConsistency(sums) {
+                if (sums.length < 5) {
+                    this.trend_analysis.trend_consistency = 0.5;
+                    return;
+                }
+                
+                const windows = [5, 8, 12];
+                const consistencies = [];
+                
+                for (const window of windows) {
+                    if (sums.length >= window) {
+                        const windowSums = sums.slice(0, window);
+                        const trendDirections = [];
+                        
+                        for (let i = 1; i < windowSums.length; i++) {
+                            const direction = windowSums[i] > windowSums[i-1] ? 1 : 
+                                            (windowSums[i] < windowSums[i-1] ? -1 : 0);
+                            trendDirections.push(direction);
+                        }
+                        
+                        if (trendDirections.length > 0) {
+                            const consistency = trendDirections.filter(d => d === trendDirections[0]).length / trendDirections.length;
+                            consistencies.push(consistency);
+                        }
+                    }
+                }
+                
+                if (consistencies.length > 0) {
+                    this.trend_analysis.trend_consistency = consistencies.reduce((a, b) => a + b, 0) / consistencies.length;
+                } else {
+                    this.trend_analysis.trend_consistency = 0.5;
+                }
+            }
+            
+            // 计算波动水平
+            calculateVolatilityLevel(sums) {
+                if (sums.length < 5) {
+                    this.trend_analysis.volatility_level = 0.5;
+                    return;
+                }
+                
+                const windowSums = sums.slice(0, 15);
+                const mean = windowSums.reduce((a, b) => a + b, 0) / windowSums.length;
+                const variance = windowSums.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / windowSums.length;
+                const stdDev = Math.sqrt(variance);
+                
+                const volatility = stdDev / mean;
+                const normalizedVolatility = Math.min(1.0, volatility * 3);
+                this.trend_analysis.volatility_level = normalizedVolatility;
+            }
+            
+            // 识别模式
+            identifyPatterns(types, sums) {
+                if (types.length < 8) return;
+                
+                const typePatterns = {};
+                
+                for (let i = 0; i < types.length - 3; i++) {
+                    const pattern = types.slice(i, i + 3);
+                    const nextType = types[i + 3];
+                    
+                    const patternKey = pattern.join(',');
+                    
+                    if (!typePatterns[patternKey]) {
+                        typePatterns[patternKey] = [];
+                    }
+                    
+                    if (nextType) {
+                        typePatterns[patternKey].push(nextType);
+                    }
+                }
+                
+                const patternAccuracy = {};
+                for (const [pattern, outcomes] of Object.entries(typePatterns)) {
+                    if (outcomes.length >= 2) {
+                        const counter = {};
+                        for (const outcome of outcomes) {
+                            counter[outcome] = (counter[outcome] || 0) + 1;
+                        }
+                        
+                        let mostCommon = null;
+                        let maxCount = 0;
+                        
+                        for (const [type, count] of Object.entries(counter)) {
+                            if (count > maxCount) {
+                                mostCommon = type;
+                                maxCount = count;
+                            }
+                        }
+                        
+                        const accuracy = maxCount / outcomes.length;
+                        patternAccuracy[pattern] = [mostCommon, accuracy];
+                    }
+                }
+                
+                this.trend_analysis.pattern_recognition = patternAccuracy;
+            }
+            
+            // 计算动量指数
+            calculateMomentumIndex(data) {
+                if (data.length < 8) {
+                    this.time_analysis.momentum_index = 0.5;
+                    return;
+                }
+                
+                const sums = data.slice(0, 15).map(item => item.sum);
+                const momentumIndicators = [];
+                
+                if (sums.length >= 4) {
+                    const shortMomentum = (sums[0] - sums[3]) / 3.0;
+                    momentumIndicators.push(shortMomentum);
+                }
+                
+                if (sums.length >= 7) {
+                    const mediumMomentum = (sums[0] - sums[6]) / 6.0;
+                    momentumIndicators.push(mediumMomentum);
+                }
+                
+                if (sums.length >= 11) {
+                    const longMomentum = (sums[0] - sums[10]) / 10.0;
+                    momentumIndicators.push(longMomentum);
+                }
+                
+                if (momentumIndicators.length > 0) {
+                    const avgMomentum = momentumIndicators.reduce((a, b) => a + b, 0) / momentumIndicators.length;
+                    const normalizedMomentum = Math.tanh(avgMomentum / 5.0) * 0.5 + 0.5;
+                    this.time_analysis.momentum_index = normalizedMomentum;
+                } else {
+                    this.time_analysis.momentum_index = 0.5;
+                }
+            }
+            
+            // 更新特码频率分析
+            updateCodeFrequencyAnalysis(data) {
+                if (data.length < 5) return;
+                
+                // 使用时间衰减权重
+                const weights = Array.from({length: Math.min(30, data.length)}, (_, i) => Math.exp(-i * 0.15));
+                const weightSum = weights.reduce((a, b) => a + b, 0);
+                const normalizedWeights = weights.map(w => w / weightSum);
+                
+                // 重置频率数组
+                this.trend_analysis.code_frequency = new Array(28).fill(0);
+                
+                // 加权更新频率
+                for (let idx = 0; idx < Math.min(30, data.length); idx++) {
+                    const sumVal = data[idx].sum;
+                    const weight = idx < normalizedWeights.length ? normalizedWeights[idx] : 1.0;
+                    
+                    if (sumVal >= 0 && sumVal <= 27) {
+                        this.trend_analysis.code_frequency[sumVal] += weight;
+                    }
+                }
+                
+                // 归一化
+                const total = this.trend_analysis.code_frequency.reduce((a, b) => a + b, 0);
+                if (total > 0) {
+                    this.trend_analysis.code_frequency = this.trend_analysis.code_frequency.map(val => val / total);
+                }
+            }
+            
+            // 基于球预测的核心预测算法
+            sumBasedPrediction(data) {
+                if (data.length < 5) {
+                    return ["大单大双", "大双", [0, 0, 0], [50, 50, 50]];
+                }
+                
+                this.updateBallAnalysis(data);
+                
+                const [predictedBalls, ballConfidences] = this.predictBallsEnhanced(data);
+                
+                // 使用新的杀组算法，先算杀组再计算双组
+                const [finalResult, killResult] = this.enhancedDoublePredictionWithNewKill(data, predictedBalls);
+                
+                this.adaptiveLearning(data, 0.5);
+                
+                return [finalResult, killResult, predictedBalls, ballConfidences];
+            }
+            
+            // 增强的双组预测算法（使用新杀组算法）
+            enhancedDoublePredictionWithNewKill(data, predictedBalls) {
+                if (data.length < 10) {
+                    return ["大单大双", "大双"];
+                }
+                
+                this.analyzeDynamicTrends(data);
+                
+                // 1. 先使用新算法计算杀组
+                const newKillType = this.calculateNewKillType(data);
+                
+                // 2. 智能强势类型识别
+                const strongType = this.calculateIntelligentStrongType(data);
+                this.algorithm_state.strong_type = strongType;
+                
+                // 3. 尾数预测双组
+                const tailBasedPrediction = this.calculateTailBasedDoublePrediction(data);
+                
+                // 4. 结合多种算法的双组预测（排除杀组）
+                const finalTypes = this.combineMultiplePredictionsWithKill(
+                    strongType, 
+                    tailBasedPrediction.finalTypes,
+                    data, 
+                    newKillType
+                );
+                
+                return [finalTypes.join(''), newKillType];
+            }
+            
+            // 结合多种预测结果（排除杀组）
+            combineMultiplePredictionsWithKill(strongType, tailBasedTypes, data, killType) {
+                const finalTypes = [strongType];
+                
+                // 收集所有候选第二类型（排除杀组和强势类型）
+                const candidateTypes = new Set();
+                candidateTypes.add(tailBasedTypes.find(type => type !== strongType && type !== killType));
+                
+                // 移除undefined和重复项
+                const candidates = Array.from(candidateTypes).filter(type => type && type !== strongType && type !== killType);
+                
+                if (candidates.length > 0) {
+                    // 选择与强势类型互补性最好的候选
+                    let bestCandidate = candidates[0];
+                    let bestScore = this.calculateComplementScore(strongType, bestCandidate);
+                    
+                    for (let i = 1; i < candidates.length; i++) {
+                        const score = this.calculateComplementScore(strongType, candidates[i]);
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestCandidate = candidates[i];
+                        }
+                    }
+                    
+                    finalTypes.push(bestCandidate);
+                } else {
+                    // 如果没有合适的候选，使用传统算法
+                    const allTypes = ["大单", "大双", "小单", "小双"];
+                    const availableTypes = allTypes.filter(t => t !== strongType && t !== killType);
+                    if (availableTypes.length > 0) {
+                        finalTypes.push(availableTypes[0]);
+                    } else {
+                        // 如果所有类型都被排除，只保留强势类型
+                        console.warn("所有类型都被排除，只保留强势类型");
+                    }
+                }
+                
+                // 确保有两个类型
+                if (finalTypes.length < 2) {
+                    const allTypes = ["大单", "大双", "小单", "小双"];
+                    const remainingTypes = allTypes.filter(t => !finalTypes.includes(t) && t !== killType);
+                    if (remainingTypes.length > 0) {
+                        finalTypes.push(remainingTypes[0]);
+                    }
+                }
+                
+                return finalTypes;
+            }
+            
+            // 多算法集成预测
+            ensemblePrediction(data) {
+                const allTypes = ["大单", "大双", "小单", "小双"];
+                const typeScores = {"大单": 0, "大双": 0, "小单": 0, "小双": 0};
+                
+                // 1. 马尔可夫链预测
+                const markovScores = this.markovChainPrediction(data);
+                for (const [type, score] of Object.entries(markovScores)) {
+                    typeScores[type] += score * this.algorithm_state.algorithm_weights.markov_chain;
+                }
+                
+                // 2. 时间序列预测
+                const timeSeriesScores = this.timeSeriesPrediction(data);
+                for (const [type, score] of Object.entries(timeSeriesScores)) {
+                    typeScores[type] += score * this.algorithm_state.algorithm_weights.time_series;
+                }
+                
+                // 3. 神经网络预测
+                const neuralScores = this.neuralNetworkPrediction(data);
+                for (const [type, score] of Object.entries(neuralScores)) {
+                    typeScores[type] += score * this.algorithm_state.algorithm_weights.neural_network;
+                }
+                
+                // 4. 贝叶斯推理
+                const bayesianScores = this.bayesianPrediction(data);
+                for (const [type, score] of Object.entries(bayesianScores)) {
+                    typeScores[type] += score * this.algorithm_state.algorithm_weights.bayesian_inference;
+                }
+                
+                // 5. 支持向量机分类
+                const svmScores = this.svmPrediction(data);
+                for (const [type, score] of Object.entries(svmScores)) {
+                    typeScores[type] += score * this.algorithm_state.algorithm_weights.svm_classifier;
+                }
+                
+                // 6. 随机森林
+                const forestScores = this.randomForestPrediction(data);
+                for (const [type, score] of Object.entries(forestScores)) {
+                    typeScores[type] += score * this.algorithm_state.algorithm_weights.random_forest;
+                }
+                
+                // 归一化分数
+                const totalScore = Object.values(typeScores).reduce((a, b) => a + b, 0);
+                if (totalScore > 0) {
+                    for (const type of Object.keys(typeScores)) {
+                        typeScores[type] /= totalScore;
+                    }
+                }
+                
+                // 选择双组和杀组
+                const sortedTypes = Object.entries(typeScores)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 2)
+                    .map(item => item[0]);
+                
+                const killType = Object.entries(typeScores)
+                    .sort((a, b) => a[1] - b[1])[0][0];
+                
+                return {
+                    finalTypes: sortedTypes,
+                    killType: killType,
+                    ensembleScores: typeScores
+                };
+            }
+            
+            // 马尔可夫链预测
+            markovChainPrediction(data) {
+                const currentType = data[0].type;
+                const transitions = this.trend_analysis.hmm_transitions;
+                
+                if (!transitions || !transitions[currentType]) {
+                    return {"大单": 0.25, "大双": 0.25, "小单": 0.25, "小双": 0.25};
+                }
+                
+                return transitions[currentType];
+            }
+            
+            // 时间序列预测
+            timeSeriesPrediction(data) {
+                const sums = data.map(item => item.sum);
+                const currentSum = sums[0];
+                
+                // 基于ARIMA预测的趋势
+                let trendDirection = 0;
+                if (this.trend_analysis.arima_prediction !== undefined) {
+                    trendDirection = this.trend_analysis.arima_prediction > 0 ? 1 : -1;
+                }
+                
+                const scores = {"大单": 0.25, "大双": 0.25, "小单": 0.25, "小双": 0.25};
+                
+                if (trendDirection > 0 && currentSum <= 13) {
+                    scores["大单"] = 0.4;
+                    scores["大双"] = 0.35;
+                    scores["小单"] = 0.15;
+                    scores["小双"] = 0.1;
+                } else if (trendDirection > 0 && currentSum > 13) {
+                    scores["大单"] = 0.45;
+                    scores["大双"] = 0.4;
+                    scores["小单"] = 0.1;
+                    scores["小双"] = 0.05;
+                } else if (trendDirection < 0 && currentSum >= 14) {
+                    scores["小单"] = 0.4;
+                    scores["小双"] = 0.35;
+                    scores["大单"] = 0.15;
+                    scores["大双"] = 0.1;
+                } else if (trendDirection < 0 && currentSum < 14) {
+                    scores["小单"] = 0.45;
+                    scores["小双"] = 0.4;
+                    scores["大单"] = 0.1;
+                    scores["大双"] = 0.05;
+                }
+                
+                return scores;
+            }
+            
+            // 贝叶斯推理预测
+            bayesianPrediction(data) {
+                const recentTypes = data.slice(0, 10).map(item => item.type);
+                const typeCounts = {};
+                
+                for (const type of recentTypes) {
+                    typeCounts[type] = (typeCounts[type] || 0) + 1;
+                }
+                
+                const total = recentTypes.length;
+                const scores = {};
+                
+                // 先验概率 (使用历史频率)
+                for (const type of ["大单", "大双", "小单", "小双"]) {
+                    const prior = typeCounts[type] ? typeCounts[type] / total : 0.25;
+                    
+                    // 简单的似然计算 (基于近期模式)
+                    let likelihood = 1.0;
+                    if (recentTypes.length >= 3) {
+                        const lastThree = recentTypes.slice(0, 3);
+                        const patternCount = recentTypes.filter((t, i) => 
+                            i < recentTypes.length - 3 && 
+                            recentTypes[i] === lastThree[0] &&
+                            recentTypes[i+1] === lastThree[1] &&
+                            recentTypes[i+2] === lastThree[2] &&
+                            recentTypes[i+3] === type
+                        ).length;
+                        
+                        const totalPatterns = recentTypes.length - 3;
+                        likelihood = totalPatterns > 0 ? patternCount / totalPatterns : 0.1;
+                    }
+                    
+                    // 贝叶斯更新
+                    scores[type] = prior * likelihood;
+                }
+                
+                // 归一化
+                const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
+                if (totalScore > 0) {
+                    for (const type of Object.keys(scores)) {
+                        scores[type] /= totalScore;
+                    }
+                }
+                
+                return scores;
+            }
+            
+            // 支持向量机分类 (简化版)
+            svmPrediction(data) {
+                // 简化的SVM实现 - 基于边界距离
+                const current = data[0];
+                const sum = current.sum;
+                
+                // 计算到各类别边界的距离
+                const distances = {
+                    "大单": Math.abs(sum - 20), // 距离大单中心
+                    "大双": Math.abs(sum - 21), // 距离大双中心
+                    "小单": Math.abs(sum - 7),  // 距离小单中心
+                    "小双": Math.abs(sum - 6)   // 距离小双中心
+                };
+                
+                // 转换为概率 (距离越小概率越大)
+                const scores = {};
+                const totalDistance = Object.values(distances).reduce((a, b) => a + b, 0);
+                
+                for (const [type, distance] of Object.entries(distances)) {
+                    scores[type] = (totalDistance - distance) / (3 * totalDistance);
+                }
+                
+                return scores;
+            }
+            
+            // 随机森林预测 (简化版)
+            randomForestPrediction(data) {
+                // 简化的随机森林 - 多决策树投票
+                const scores = {"大单": 0, "大双": 0, "小单": 0, "小双": 0};
+                const numTrees = 5;
+                
+                for (let i = 0; i < numTrees; i++) {
+                    // 每棵树使用不同的特征子集
+                    const treeScores = this.decisionTreePrediction(data, i);
+                    for (const [type, score] of Object.entries(treeScores)) {
+                        scores[type] += score;
+                    }
+                }
+                
+                // 归一化
+                for (const type of Object.keys(scores)) {
+                    scores[type] /= numTrees;
+                }
+                
+                return scores;
+            }
+            
+            // 决策树预测 (简化版)
+            decisionTreePrediction(data, treeIndex) {
+                const current = data[0];
+                const sum = current.sum;
+                const scores = {"大单": 0.25, "大双": 0.25, "小单": 0.25, "小双": 0.25};
+                
+                // 基于不同特征的简单决策规则
+                switch (treeIndex % 5) {
+                    case 0: // 基于和值
+                        if (sum > 13) {
+                            scores["大单"] = 0.4;
+                            scores["大双"] = 0.4;
+                            scores["小单"] = 0.1;
+                            scores["小双"] = 0.1;
+                        } else {
+                            scores["小单"] = 0.4;
+                            scores["小双"] = 0.4;
+                            scores["大单"] = 0.1;
+                            scores["大双"] = 0.1;
+                        }
+                        break;
+                    case 1: // 基于奇偶
+                        if (sum % 2 === 0) {
+                            scores["大双"] = 0.4;
+                            scores["小双"] = 0.4;
+                            scores["大单"] = 0.1;
+                            scores["小单"] = 0.1;
+                        } else {
+                            scores["大单"] = 0.4;
+                            scores["小单"] = 0.4;
+                            scores["大双"] = 0.1;
+                            scores["小双"] = 0.1;
+                        }
+                        break;
+                    case 2: // 基于趋势
+                        if (this.trend_analysis.short_term_trend > 0) {
+                            scores["大单"] = 0.35;
+                            scores["大双"] = 0.35;
+                            scores["小单"] = 0.15;
+                            scores["小双"] = 0.15;
+                        } else {
+                            scores["小单"] = 0.35;
+                            scores["小双"] = 0.35;
+                            scores["大单"] = 0.15;
+                            scores["大双"] = 0.15;
+                        }
+                        break;
+                    case 3: // 基于波动
+                        if (this.trend_analysis.volatility_level > 0.5) {
+                            // 高波动性下更均匀分布
+                            for (const type of Object.keys(scores)) {
+                                scores[type] = 0.25;
+                            }
+                        } else {
+                            // 低波动性下强化当前趋势
+                            const currentType = data[0].type;
+                            scores[currentType] = 0.5;
+                            for (const type of Object.keys(scores)) {
+                                if (type !== currentType) {
+                                    scores[type] = 0.5 / 3;
+                                }
+                            }
+                        }
+                        break;
+                    case 4: // 基于时间模式
+                        const hour = data[0].hour;
+                        if (hour >= 6 && hour < 12) {
+                            // 早晨模式
+                            scores["大单"] = 0.3;
+                            scores["大双"] = 0.3;
+                            scores["小单"] = 0.2;
+                            scores["小双"] = 0.2;
+                        } else if (hour >= 12 && hour < 18) {
+                            // 下午模式
+                            scores["大单"] = 0.25;
+                            scores["大双"] = 0.25;
+                            scores["小单"] = 0.25;
+                            scores["小双"] = 0.25;
+                        } else {
+                            // 晚上模式
+                            scores["小单"] = 0.3;
+                            scores["小双"] = 0.3;
+                            scores["大单"] = 0.2;
+                            scores["大双"] = 0.2;
+                        }
+                        break;
+                }
+                
+                return scores;
+            }
+            
+            // 智能强势类型识别 - 基于多维分析
+            calculateIntelligentStrongType(data) {
+                if (data.length < 10) return "大单";
+                
+                const typeScores = {"大单": 0, "大双": 0, "小单": 0, "小双": 0};
+                
+                // 1. 趋势强度分析 (20%)
+                const trendScores = this.calculateEnhancedTrendScore(data);
+                for (const [typeName, score] of Object.entries(trendScores)) {
+                    typeScores[typeName] += score * 0.20;
+                }
+                
+                // 2. 动量周期分析 (15%)
+                const momentumScores = this.calculateMomentumCycleScore(data);
+                for (const [typeName, score] of Object.entries(momentumScores)) {
+                    typeScores[typeName] += score * 0.15;
+                }
+                
+                // 3. 模式连续性分析 (15%)
+                const patternScores = this.calculatePatternContinuityScore(data);
+                for (const [typeName, score] of Object.entries(patternScores)) {
+                    typeScores[typeName] += score * 0.15;
+                }
+                
+                // 4. 遗漏压力分析 (10%)
+                const omissionScores = this.calculateOmissionPressureScore(data);
+                for (const [typeName, score] of Object.entries(omissionScores)) {
+                    typeScores[typeName] += score * 0.10;
+                }
+                
+                // 5. 时间窗口分析 (10%)
+                const timeScores = this.calculateTimeWindowScore(data);
+                for (const [typeName, score] of Object.entries(timeScores)) {
+                    typeScores[typeName] += score * 0.10;
+                }
+                
+                // 6. 波动适应性分析 (8%)
+                const volatilityScores = this.calculateVolatilityAdaptationScore(data);
+                for (const [typeName, score] of Object.entries(volatilityScores)) {
+                    typeScores[typeName] += score * 0.08;
+                }
+                
+                // 7. 历史表现分析 (7%)
+                const historyScores = this.calculateHistoryPerformanceScore(data);
+                for (const [typeName, score] of Object.entries(historyScores)) {
+                    typeScores[typeName] += score * 0.07;
+                }
+                
+                // 8. 集成学习结果 (15%)
+                const ensembleScores = this.ensemblePrediction(data).ensembleScores;
+                for (const [typeName, score] of Object.entries(ensembleScores)) {
+                    typeScores[typeName] += score * 0.15;
+                }
+                
+                // 选择得分最高的类型
+                let bestType = "大单";
+                let maxScore = typeScores["大单"];
+                
+                for (const [typeName, score] of Object.entries(typeScores)) {
+                    if (score > maxScore) {
+                        maxScore = score;
+                        bestType = typeName;
+                    }
+                }
+                
+                // 验证强势类型的可靠性
+                if (typeScores[bestType] < 0.6) {
+                    // 如果得分过低，使用备选策略
+                    bestType = this.selectAlternativeStrongType(data, typeScores);
+                }
+                
+                return bestType;
+            }
+            
+            // 增强的趋势分数计算
+            calculateEnhancedTrendScore(data) {
+                const scores = {"大单": 0.5, "大双": 0.5, "小单": 0.5, "小双": 0.5};
+                
+                if (data.length < 8) return scores;
+                
+                // 多时间窗口趋势分析
+                const windows = [3, 5, 8, 12];
+                const trendDirections = [];
+                
+                for (const window of windows) {
+                    if (data.length >= window) {
+                        const windowData = data.slice(0, window).map(item => item.sum);
+                        if (new Set(windowData).size > 1) {
+                            const x = Array.from({length: windowData.length}, (_, i) => i);
+                            const slope = this.calculateSlope(x, windowData);
+                            trendDirections.push(slope);
+                        }
+                    }
+                }
+                
+                if (trendDirections.length > 0) {
+                    const avgTrend = trendDirections.reduce((a, b) => a + b, 0) / trendDirections.length;
+                    const trendStrength = Math.min(1.0, Math.abs(avgTrend) / 3.0);
+                    
+                    const currentSum = data[0].sum;
+                    const currentType = data[0].type;
+                    
+                    if (avgTrend > 0.2) {  // 明显上升趋势
+                        if (currentSum <= 13) {
+                            scores["大单"] = 0.8 + trendStrength * 0.2;
+                            scores["大双"] = 0.7 + trendStrength * 0.2;
+                        } else {
+                            scores["大单"] = 0.9 + trendStrength * 0.1;
+                            scores["大双"] = 0.8 + trendStrength * 0.1;
+                        }
+                    } else if (avgTrend < -0.2) {  // 明显下降趋势
+                        if (currentSum >= 14) {
+                            scores["小单"] = 0.8 + trendStrength * 0.2;
+                            scores["小双"] = 0.7 + trendStrength * 0.2;
+                        } else {
+                            scores["小单"] = 0.9 + trendStrength * 0.1;
+                            scores["小双"] = 0.8 + trendStrength * 0.1;
+                        }
+                    } else {  // 平稳趋势
+                        // 在平稳趋势下，选择与当前类型相同的类型
+                        scores[currentType] = 0.7;
+                        for (const typeName of Object.keys(scores)) {
+                            if (typeName !== currentType) {
+                                scores[typeName] = 0.4;
+                            }
+                        }
+                    }
+                }
+                
+                return scores;
+            }
+            
+            // 动量周期分数计算
+            calculateMomentumCycleScore(data) {
+                const scores = {"大单": 0.5, "大双": 0.5, "小单": 0.5, "小双": 0.5};
+                
+                if (data.length < 10) return scores;
+                
+                // 动量周期检测
+                const momentumWindows = [5, 8, 13];
+                const momentumValues = [];
+                
+                for (const window of momentumWindows) {
+                    if (data.length >= window) {
+                        const windowSums = data.slice(0, window).map(item => item.sum);
+                        const mean = windowSums.reduce((a, b) => a + b, 0) / windowSums.length;
+                        const stdDev = Math.sqrt(windowSums.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / windowSums.length);
+                        const momentum = (windowSums[0] - mean) / (stdDev + 0.1);
+                        momentumValues.push(momentum);
+                    }
+                }
+                
+                if (momentumValues.length > 0) {
+                    const avgMomentum = momentumValues.reduce((a, b) => a + b, 0) / momentumValues.length;
+                    const momentumStrength = Math.min(1.0, Math.abs(avgMomentum) * 2);
+                    
+                    if (avgMomentum > 0.3) {  // 强正动量
+                        const currentType = data[0].type;
+                        scores[currentType] = 0.8 + momentumStrength * 0.2;
+                        
+                        // 正动量时，减少相反类型的分数
+                        const oppositeTypes = this.getOppositeTypes(currentType);
+                        for (const oppType of oppositeTypes) {
+                            scores[oppType] = 0.3;
+                        }
+                    } else if (avgMomentum < -0.3) {  // 强负动量
+                        const currentType = data[0].type;
+                        scores[currentType] = 0.3;
+                        
+                        // 负动量时，增加其他类型的分数
+                        for (const typeName of Object.keys(scores)) {
+                            if (typeName !== currentType) {
+                                scores[typeName] = 0.7 + momentumStrength * 0.1;
+                            }
+                        }
+                    } else {  // 弱动量
+                        // 弱动量下，使用频率分析
+                        const typeCounts = {};
+                        for (const item of data.slice(0, 15)) {
+                            typeCounts[item.type] = (typeCounts[item.type] || 0) + 1;
+                        }
+                        const total = Object.values(typeCounts).reduce((a, b) => a + b, 0);
+                        
+                        for (const typeName of Object.keys(scores)) {
+                            const count = typeCounts[typeName] || 0;
+                            scores[typeName] = 0.4 + (count / total) * 0.3;
+                        }
+                    }
+                }
+                
+                return scores;
+            }
+            
+            // 模式连续性分数计算
+            calculatePatternContinuityScore(data) {
+                const scores = {"大单": 0.5, "大双": 0.5, "小单": 0.5, "小双": 0.5};
+                
+                if (data.length < 8) return scores;
+                
+                const recentTypes = data.slice(0, 10).map(item => item.type);
+                
+                // 1. 直接模式匹配
+                for (const patternLength of [3, 4]) {
+                    if (recentTypes.length >= patternLength + 1) {
+                        const currentPattern = recentTypes.slice(0, patternLength);
+                        const futureOutcomes = [];
+                        
+                        for (let i = 0; i < recentTypes.length - patternLength; i++) {
+                            if (JSON.stringify(recentTypes.slice(i, i + patternLength)) === JSON.stringify(currentPattern)) {
+                                if (i + patternLength < recentTypes.length) {
+                                    futureOutcomes.push(recentTypes[i + patternLength]);
+                                }
+                            }
+                        }
+                        
+                        if (futureOutcomes.length >= 2) {
+                            const counter = {};
+                            for (const outcome of futureOutcomes) {
+                                counter[outcome] = (counter[outcome] || 0) + 1;
+                            }
+                            
+                            let mostCommon = null;
+                            let maxCount = 0;
+                            for (const [typeName, count] of Object.entries(counter)) {
+                                if (count > maxCount) {
+                                    mostCommon = typeName;
+                                    maxCount = count;
+                                }
+                            }
+                            
+                            const accuracy = maxCount / futureOutcomes.length;
+                            if (accuracy > 0.6) {
+                                scores[mostCommon] = 0.5 + accuracy * 0.5;
+                            }
+                        }
+                    }
+                }
+                
+                // 2. 类型转换模式
+                const typeTransitions = [];
+                for (let i = 1; i < recentTypes.length; i++) {
+                    typeTransitions.push([recentTypes[i-1], recentTypes[i]]);
+                }
+                
+                if (typeTransitions.length >= 3) {
+                    const currentType = recentTypes[0];
+                    const nextTypes = typeTransitions
+                        .filter(transition => transition[0] === currentType)
+                        .map(transition => transition[1]);
+                    
+                    if (nextTypes.length > 0) {
+                        const counter = {};
+                        for (const type of nextTypes) {
+                            counter[type] = (counter[type] || 0) + 1;
+                        }
+                        
+                        let mostCommon = null;
+                        let maxCount = 0;
+                        for (const [typeName, count] of Object.entries(counter)) {
+                            if (count > maxCount) {
+                                mostCommon = typeName;
+                                maxCount = count;
+                            }
+                        }
+                        
+                        const probability = maxCount / nextTypes.length;
+                        if (probability > 0.5) {
+                            scores[mostCommon] = Math.max(scores[mostCommon], 0.4 + probability * 0.4);
+                        }
+                    }
+                }
+                
+                return scores;
+            }
+            
+            // 遗漏压力分数计算
+            calculateOmissionPressureScore(data) {
+                const scores = {"大单": 0.5, "大双": 0.5, "小单": 0.5, "小双": 0.5};
+                
+                if (data.length < 10) return scores;
+                
+                const recentTypes = data.slice(0, 20).map(item => item.type);
+                const allTypes = ["大单", "大双", "小单", "小双"];
+                
+                // 计算遗漏值和压力指数
+                const omissions = {};
+                for (const typeName of allTypes) {
+                    if (recentTypes.includes(typeName)) {
+                        const lastIndex = recentTypes.length - 1 - [...recentTypes].reverse().indexOf(typeName);
+                        omissions[typeName] = lastIndex;
+                    } else {
+                        omissions[typeName] = recentTypes.length;
+                    }
+                }
+                
+                const maxOmission = Math.max(...Object.values(omissions));
+                const avgOmission = Object.values(omissions).reduce((a, b) => a + b, 0) / allTypes.length;
+                
+                for (const [typeName, omission] of Object.entries(omissions)) {
+                    // 遗漏压力公式：遗漏越久，压力越大，分数越高
+                    if (maxOmission > 0) {
+                        const pressure = (omission - avgOmission) / maxOmission;
+                        scores[typeName] = 0.3 + Math.min(0.4, Math.max(0, pressure)) * 0.7;
+                    } else {
+                        scores[typeName] = 0.5;
+                    }
+                }
+                
+                return scores;
+            }
+            
+            // 时间窗口分数计算
+            calculateTimeWindowScore(data) {
+                const scores = {"大单": 0.5, "大双": 0.5, "小单": 0.5, "小双": 0.5};
+                
+                if (data.length < 15) return scores;
+                
+                const currentTime = new Date();
+                const currentHour = currentTime.getHours();
+                
+                // 时间窗口分析
+                const timeWindows = {
+                    'morning': [6, 12],    // 早晨
+                    'afternoon': [12, 18], // 下午  
+                    'evening': [18, 24],   // 晚上
+                    'night': [0, 6]        // 深夜
+                };
+                
+                let currentWindow = null;
+                for (const [windowName, [start, end]] of Object.entries(timeWindows)) {
+                    if (start <= currentHour && currentHour < end) {
+                        currentWindow = windowName;
+                        break;
+                    }
+                }
+                
+                if (currentWindow) {
+                    // 分析当前时间窗口的历史表现
+                    const windowData = data.filter(item => {
+                        const hour = item.hour;
+                        const [start, end] = timeWindows[currentWindow];
+                        return start <= hour && hour < end;
+                    });
+                    
+                    if (windowData.length >= 5) {
+                        const windowTypes = windowData.map(item => item.type);
+                        const typeCounter = {};
+                        for (const type of windowTypes) {
+                            typeCounter[type] = (typeCounter[type] || 0) + 1;
+                        }
+                        const total = windowTypes.length;
+                        
+                        for (const [typeName, count] of Object.entries(typeCounter)) {
+                            const frequency = count / total;
+                            scores[typeName] = 0.3 + frequency * 0.4;
+                        }
+                    }
+                }
+                
+                return scores;
+            }
+            
+            // 波动适应性分数计算
+            calculateVolatilityAdaptationScore(data) {
+                const scores = {"大单": 0.5, "大双": 0.5, "小单": 0.5, "小双": 0.5};
+                
+                if (data.length < 10) return scores;
+                
+                const volatility = this.trend_analysis.volatility_level;
+                
+                if (volatility > 0.7) {  // 高波动性
+                    // 高波动性下，倾向于选择近期出现频率较低的类型
+                    const recentTypes = data.slice(0, 10).map(item => item.type);
+                    const typeCounter = {};
+                    for (const type of recentTypes) {
+                        typeCounter[type] = (typeCounter[type] || 0) + 1;
+                    }
+                    
+                    for (const typeName of Object.keys(scores)) {
+                        const count = typeCounter[typeName] || 0;
+                        const frequency = count / recentTypes.length;
+                        // 高波动性时，选择频率较低的类型
+                        scores[typeName] = 0.6 - frequency * 0.3;
+                    }
+                } else if (volatility < 0.3) {  // 低波动性
+                    // 低波动性下，倾向于选择近期出现频率较高的类型
+                    const recentTypes = data.slice(0, 10).map(item => item.type);
+                    const typeCounter = {};
+                    for (const type of recentTypes) {
+                        typeCounter[type] = (typeCounter[type] || 0) + 1;
+                    }
+                    
+                    for (const typeName of Object.keys(scores)) {
+                        const count = typeCounter[typeName] || 0;
+                        const frequency = count / recentTypes.length;
+                        // 低波动性时，选择频率较高的类型
+                        scores[typeName] = 0.4 + frequency * 0.4;
+                    }
+                }
+                
+                return scores;
+            }
+            
+            // 历史表现分数计算
+            calculateHistoryPerformanceScore(data) {
+                const scores = {"大单": 0.5, "大双": 0.5, "小单": 0.5, "小双": 0.5};
+                
+                // 分析各类型在类似模式下的历史表现
+                if (data.length < 15) return scores;
+                
+                const currentPattern = data.slice(0, 3).map(item => item.type);
+                const similarPatterns = [];
+                
+                // 在历史数据中寻找类似模式
+                for (let i = 3; i < data.length - 3; i++) {
+                    const pattern = [data[i].type, data[i+1].type, data[i+2].type];
+                    if (JSON.stringify(pattern) === JSON.stringify(currentPattern)) {
+                        similarPatterns.push(data[i+3].type);
+                    }
+                }
+                
+                if (similarPatterns.length >= 2) {
+                    const counter = {};
+                    for (const type of similarPatterns) {
+                        counter[type] = (counter[type] || 0) + 1;
+                    }
+                    
+                    for (const [typeName, count] of Object.entries(counter)) {
+                        const probability = count / similarPatterns.length;
+                        scores[typeName] = 0.4 + probability * 0.4;
+                    }
+                }
+                
+                return scores;
+            }
+            
+            // 备选强势类型选择策略
+            selectAlternativeStrongType(data, typeScores) {
+                if (data.length < 5) return "大单";
+                
+                // 策略1: 选择近期出现频率最高的类型
+                const recentTypes = data.slice(0, 8).map(item => item.type);
+                const typeCounter = {};
+                for (const type of recentTypes) {
+                    typeCounter[type] = (typeCounter[type] || 0) + 1;
+                }
+                
+                if (Object.keys(typeCounter).length > 0) {
+                    let frequentType = "大单";
+                    let maxCount = 0;
+                    for (const [typeName, count] of Object.entries(typeCounter)) {
+                        if (count > maxCount) {
+                            maxCount = count;
+                            frequentType = typeName;
+                        }
+                    }
+                    return frequentType;
+                }
+                
+                // 策略2: 选择遗漏最久的类型
+                const allTypes = ["大单", "大双", "小单", "小双"];
+                const recentAllTypes = data.slice(0, 15).map(item => item.type);
+                
+                const omissions = {};
+                for (const typeName of allTypes) {
+                    if (recentAllTypes.includes(typeName)) {
+                        const lastIndex = recentAllTypes.length - 1 - [...recentAllTypes].reverse().indexOf(typeName);
+                        omissions[typeName] = lastIndex;
+                    } else {
+                        omissions[typeName] = recentAllTypes.length;
+                    }
+                }
+                
+                if (Object.keys(omissions).length > 0) {
+                    let mostOmitted = "大单";
+                    let maxOmission = 0;
+                    for (const [typeName, omission] of Object.entries(omissions)) {
+                        if (omission > maxOmission) {
+                            maxOmission = omission;
+                            mostOmitted = typeName;
+                        }
+                    }
+                    return mostOmitted;
+                }
+                
+                // 默认策略
+                return "大单";
+            }
+            
+            // 计算两个类型的互补性分数
+            calculateComplementScore(type1, type2) {
+                // 完全互补的类型组合
+                const perfectComplements = [
+                    ["大单", "小双"], ["大双", "小单"], 
+                    ["小单", "大双"], ["小双", "大单"]
+                ];
+                
+                for (const [t1, t2] of perfectComplements) {
+                    if ((type1 === t1 && type2 === t2) || (type1 === t2 && type2 === t1)) {
+                        return 0.9;
+                    }
+                }
+                
+                if (type1[0] !== type2[0] && type1[1] !== type2[1]) {  // 大小单双都不同
+                    return 0.7;
+                } else if (type1[0] !== type2[0]) {  // 只有大小不同
+                    return 0.6;
+                } else if (type1[1] !== type2[1]) {  // 只有单双不同
+                    return 0.5;
+                } else {
+                    return 0.3;  // 相同类型，互补性差
+                }
+            }
+            
+            // 获取相反类型
+            getOppositeTypes(typeName) {
+                const opposites = {
+                    "大单": ["小双"],
+                    "大双": ["小单"],
+                    "小单": ["大双"],
+                    "小双": ["大单"]
+                };
+                return opposites[typeName] || [];
+            }
+            
+            // 和值转类型
+            sumToType(sumVal) {
+                if (sumVal <= 13) {
+                    return (sumVal % 2 === 0) ? "小双" : "小单";
+                } else {
+                    return (sumVal % 2 === 0) ? "大双" : "大单";
+                }
+            }
+            
+            // 计算置信度
+            calculateConfidence(data, finalResult, killResult, ballConfidences) {
+                if (data.length < 5) {
+                    return [60, 55, 50];
+                }
+                
+                let baseConfidence = 65;
+                let killConfidence = 60;
+                let ballConfidence = ballConfidences.length > 0 ? 
+                    ballConfidences.reduce((a, b) => a + b, 0) / ballConfidences.length : 50;
+                
+                if (data.length >= 80) {
+                    baseConfidence += 20;
+                    killConfidence += 15;
+                    ballConfidence += 15;
+                } else if (data.length >= 50) {
+                    baseConfidence += 15;
+                    killConfidence += 10;
+                    ballConfidence += 10;
+                } else if (data.length >= 30) {
+                    baseConfidence += 10;
+                    killConfidence += 8;
+                    ballConfidence += 8;
+                } else if (data.length >= 20) {
+                    baseConfidence += 5;
+                    killConfidence += 5;
+                    ballConfidence += 5;
+                }
+                
+                if (ballConfidence > 75) {
+                    baseConfidence += 12;
+                    killConfidence += 8;
+                } else if (ballConfidence > 65) {
+                    baseConfidence += 8;
+                    killConfidence += 5;
+                }
+                
+                const predictedTypes = [];
+                for (let i = 0; i < finalResult.length; i += 2) {
+                    predictedTypes.push(finalResult.substring(i, i + 2));
+                }
+                
+                if (!predictedTypes.includes(killResult)) {
+                    baseConfidence += 8;
+                    killConfidence += 8;
+                }
+                
+                const strongType = this.algorithm_state.strong_type;
+                if (strongType && predictedTypes.includes(strongType)) {
+                    baseConfidence += 10;
+                    killConfidence += 5;
+                }
+                
+                const currentHour = new Date().getHours();
+                const hourConfidence = this.time_analysis.hourly_patterns[currentHour] * 20;
+                baseConfidence += hourConfidence;
+                killConfidence += hourConfidence * 0.8;
+                
+                const trendConfidence = this.time_analysis.trend_strength * 15;
+                baseConfidence += trendConfidence;
+                ballConfidence += trendConfidence;
+                
+                const adaptationConfidence = (this.algorithm_state.adaptation_factor - 0.5) * 10;
+                baseConfidence += adaptationConfidence;
+                
+                const consistencyConfidence = this.trend_analysis.trend_consistency * 12;
+                baseConfidence += consistencyConfidence;
+                killConfidence += consistencyConfidence * 0.7;
+                
+                const momentumConfidence = Math.abs(this.time_analysis.momentum_index - 0.5) * 20;
+                baseConfidence += momentumConfidence;
+                
+                return [
+                    Math.min(95, Math.max(50, baseConfidence)),
+                    Math.min(90, Math.max(40, killConfidence)),
+                    Math.min(95, ballConfidence)
+                ];
+            }
+            
+            // 生成精准的特码
+            generatePreciseCodes(data, finalResult, predictedBalls) {
+                if (data.length < 5) {
+                    return [7, 11, 19, 23];
+                }
+                
+                // 保存最终结果用于特码分析
+                this.last_final_result = finalResult;
+                
+                // 使用增强的特码分析算法
+                const specialCodes = this.enhancedCodeAnalysis(data);
+                
+                // 记录特码分析历史
+                this.algorithm_state.code_analysis_history.push({
+                    'codes': [...specialCodes],
+                    'timestamp': new Date(),
+                    'data_size': data.length
+                });
+                
+                if (this.algorithm_state.code_analysis_history.length > 50) {
+                    this.algorithm_state.code_analysis_history.shift();
+                }
+                
+                return specialCodes;
+            }
+            
+            // 增强的特码分析算法
+            enhancedCodeAnalysis(data) {
+                if (data.length < 10) {
+                    // 默认返回一些常见特码
+                    return [7, 11, 19, 23];
+                }
+                
+                // 分析历史特码模式
+                const recentCodes = data.slice(0, this.ai_parameters.code_analysis_depth).map(item => item.sum);
+                
+                // 强势类型影响
+                const strongType = this.algorithm_state.strong_type || "大单";
+                
+                // 获取双组预测类型
+                let predictedTypes = [];
+                if (this.last_final_result) {
+                    // 从上次预测结果获取类型
+                    const finalResult = this.last_final_result;
+                    for (let i = 0; i < finalResult.length; i += 2) {
+                        predictedTypes.push(finalResult.substring(i, i + 2));
+                    }
+                } else {
+                    // 默认使用强势类型和另一个类型
+                    predictedTypes = [strongType];
+                    const otherTypes = ["大单", "大双", "小单", "小双"].filter(t => t !== strongType);
+                    if (otherTypes.length > 0) {
+                        predictedTypes.push(otherTypes[Math.floor(Math.random() * otherTypes.length)]);
+                    }
+                }
+                
+                // 计算各类型特码的权重
+                const codeWeights = {};
+                
+                for (const [typeName, codes] of Object.entries(this.code_categories)) {
+                    for (const code of codes) {
+                        // 基础权重
+                        let weight = 1.0;
+                        
+                        // 频率权重
+                        weight *= (1 + this.trend_analysis.code_frequency[code] * 2);
+                        
+                        // 类型权重：预测类型权重更高
+                        if (predictedTypes.includes(typeName)) {
+                            weight *= 1.5;
+                        }
+                        
+                        // 强势类型权重更高
+                        if (typeName === strongType) {
+                            weight *= 1.3;
+                        }
+                        
+                        // 遗漏分析
+                        if (recentCodes.includes(code)) {
+                            const lastIndex = recentCodes.length - 1 - [...recentCodes].reverse().indexOf(code);
+                            const omission = lastIndex;
+                            // 遗漏越久，权重越高
+                            weight *= (1 + omission / recentCodes.length * 0.5);
+                        } else {
+                            // 从未出现，权重更高
+                            weight *= 1.2;
+                        }
+                        
+                        codeWeights[code] = weight;
+                    }
+                }
+                
+                // 按类型分配特码
+                const finalCodes = [];
+                
+                // 优先从预测类型中选择
+                for (const predType of predictedTypes) {
+                    if (finalCodes.length >= 4) break;
+                    
+                    const typeCodes = [...this.code_categories[predType]];
+                    // 按权重排序
+                    typeCodes.sort((a, b) => (codeWeights[b] || 0) - (codeWeights[a] || 0));
+                    
+                    // 选择前2个
+                    for (const code of typeCodes.slice(0, 2)) {
+                        if (!finalCodes.includes(code) && finalCodes.length < 4) {
+                            finalCodes.push(code);
+                        }
+                    }
+                }
+                
+                // 如果不足4个，从其他类型补充
+                if (finalCodes.length < 4) {
+                    const allCodes = [];
+                    for (const codes of Object.values(this.code_categories)) {
+                        allCodes.push(...codes);
+                    }
+                    
+                    // 按权重排序
+                    allCodes.sort((a, b) => (codeWeights[b] || 0) - (codeWeights[a] || 0));
+                    
+                    for (const code of allCodes) {
+                        if (!finalCodes.includes(code) && finalCodes.length < 4) {
+                            finalCodes.push(code);
+                        }
+                    }
+                }
+                
+                return finalCodes.slice(0, 4);
+            }
+            
+            // 获取下一期期号的后两位
+            getNextPeriodNumber(data) {
+                if (!data || data.length === 0) {
+                    return "00";
+                }
+                
+                // 获取最新期号
+                let latestPeriod;
+                if (Array.isArray(data)) {
+                    // 网络数据
+                    latestPeriod = data[0].period;
+                } else {
+                    // 手动输入数据
+                    // 这里简化处理，实际应用中可能需要解析
+                    latestPeriod = "000000";
+                }
+                
+                // 提取数字部分
+                const periodDigits = latestPeriod.replace(/\D/g, '');
+                if (!periodDigits) {
+                    return "00";
+                }
+                
+                // 计算下一期期号
+                try {
+                    let nextPeriod = parseInt(periodDigits) + 1;
+                    // 取后两位，如果到99后回到00
+                    const nextPeriodLastTwo = nextPeriod % 100;
+                    // 格式化为两位数字符串
+                    return nextPeriodLastTwo.toString().padStart(2, '0');
+                } catch (e) {
+                    return "00";
+                }
+            }
+            
+            // 以下是一些辅助方法，为了保持代码完整性，这里简单实现
+            
+            updateBallAnalysis(data) {
+                // 简化的实现
+                if (data.length < 2) return;
+                
+                for (let i = 0; i < 3; i++) {
+                    this.ball_analysis.ball_distributions[i] = new Array(10).fill(0);
+                }
+                
+                for (const item of data.slice(0, 50)) {
+                    const numbers = item.numbers;
+                    for (let i = 0; i < 3; i++) {
+                        if (numbers[i] >= 0 && numbers[i] <= 9) {
+                            this.ball_analysis.ball_distributions[i][numbers[i]] += 1;
+                            this.ball_analysis.ball_sequences[i].push(numbers[i]);
+                            if (this.ball_analysis.ball_sequences[i].length > 25) {
+                                this.ball_analysis.ball_sequences[i].shift();
+                            }
+                        }
+                    }
+                }
+                
+                // 归一化
+                for (let i = 0; i < 3; i++) {
+                    const total = this.ball_analysis.ball_distributions[i].reduce((a, b) => a + b, 0);
+                    if (total > 0) {
+                        this.ball_analysis.ball_distributions[i] = this.ball_analysis.ball_distributions[i].map(val => val / total);
+                    }
+                }
+            }
+            
+            predictBallsEnhanced(data) {
+                // 简化的实现
+                const predictedBalls = [];
+                const confidences = [];
+                
+                for (let i = 0; i < 3; i++) {
+                    const distribution = this.ball_analysis.ball_distributions[i];
+                    let maxProb = 0;
+                    let bestBall = 0;
+                    
+                    for (let j = 0; j < 10; j++) {
+                        if (distribution[j] > maxProb) {
+                            maxProb = distribution[j];
+                            bestBall = j;
+                        }
+                    }
+                    
+                    predictedBalls.push(bestBall);
+                    confidences.push(Math.min(95, maxProb * 100));
+                }
+                
+                return [predictedBalls, confidences];
+            }
+            
+            adaptiveLearning(data, accuracy) {
+                // 简化的自适应学习
+                this.algorithm_state.success_rate = 
+                    this.algorithm_state.success_rate * 0.9 + accuracy * 0.1;
+            }
+        }
+
+        // 创建预测器实例
+        const predictor = new PC28Predictor();
+        
+        // DOM元素
+        const fetchDataBtn = document.getElementById('fetchData');
+        const showStatsBtn = document.getElementById('showStats');
+        const loadingDiv = document.getElementById('loading');
+        const resultsDiv = document.getElementById('results');
+        const statisticsDiv = document.getElementById('statistics');
+        const statsGrid = document.getElementById('statsGrid');
+        
+        // 获取数据并预测
+        fetchDataBtn.addEventListener('click', async () => {
+            loadingDiv.style.display = 'block';
+            resultsDiv.style.display = 'none';
+            statisticsDiv.style.display = 'none';
+            
+            try {
+                // 获取彩票数据
+                const rawData = await predictor.fetchLotteryData(100);
+                if (!rawData || rawData.length === 0) {
+                    alert('无法从网络获取数据');
+                    loadingDiv.style.display = 'none';
+                    return;
+                }
+                
+                // 解析数据
+                const periods = predictor.parseNetworkData(rawData);
+                if (!periods || periods.length === 0) {
+                    alert('网络数据解析失败');
+                    loadingDiv.style.display = 'none';
+                    return;
+                }
+                
+                // 执行预测
+                const [finalResult, killResult, predictedBalls, ballConfidences] = predictor.sumBasedPrediction(periods);
+                
+                // 计算置信度
+                const [baseConfidence, killConfidence, ballConfidence] = predictor.calculateConfidence(
+                    periods, finalResult, killResult, ballConfidences);
+                
+                // 生成特码
+                const specialCodes = predictor.generatePreciseCodes(periods, finalResult, predictedBalls);
+                
+                // 预测尾数
+                const tailNumbers = predictor.predictTailNumbers(4);
+                
+                // 显示结果
+                displayResults(
+                    finalResult, killResult, specialCodes, 
+                    baseConfidence, killConfidence, ballConfidence,
+                    predictedBalls, ballConfidences, periods, tailNumbers
+                );
+                
+                // 显示统计信息
+                displayStatistics(periods);
+                
+                loadingDiv.style.display = 'none';
+                resultsDiv.style.display = 'block';
+                
+            } catch (error) {
+                console.error('预测过程中出错:', error);
+                alert('预测过程中出错: ' + error.message);
+                loadingDiv.style.display = 'none';
+            }
+        });
+        
+        // 显示统计信息
+        showStatsBtn.addEventListener('click', async () => {
+            try {
+                // 获取彩票数据
+                const rawData = await predictor.fetchLotteryData(100);
+                if (!rawData || rawData.length === 0) {
+                    alert('无法从网络获取数据');
+                    return;
+                }
+                
+                // 解析数据
+                const periods = predictor.parseNetworkData(rawData);
+                if (!periods || periods.length === 0) {
+                    alert('网络数据解析失败');
+                    return;
+                }
+                
+                // 显示统计信息
+                displayStatistics(periods);
+                statisticsDiv.style.display = 'block';
+                resultsDiv.style.display = 'none';
+                
+            } catch (error) {
+                console.error('获取统计信息过程中出错:', error);
+                alert('获取统计信息过程中出错: ' + error.message);
+            }
+        });
+        
+        // 显示预测结果
+        function displayResults(
+            finalResult, killResult, specialCodes, 
+            baseConfidence, killConfidence, ballConfidence,
+            predictedBalls, ballConfidences, data, tailNumbers
+        ) {
+            // 更新UI元素
+            document.getElementById('finalResult').textContent = finalResult;
+            document.getElementById('baseConfidence').textContent = `置信度: ${Math.round(baseConfidence)}%`;
+            
+            document.getElementById('killResult').textContent = killResult;
+            document.getElementById('killConfidence').textContent = `置信度: ${Math.round(killConfidence)}%`;
+            
+            document.getElementById('specialCodes').textContent = specialCodes.map(code => code.toString().padStart(2, '0')).join(' ');
+            document.getElementById('ballConfidence').textContent = `${Math.round(ballConfidence)}%`;
+            
+            document.getElementById('ballA').textContent = `${predictedBalls[0]} (置信度:${Math.round(ballConfidences[0])}%)`;
+            document.getElementById('ballB').textContent = `${predictedBalls[1]} (置信度:${Math.round(ballConfidences[1])}%)`;
+            document.getElementById('ballC').textContent = `${predictedBalls[2]} (置信度:${Math.round(ballConfidences[2])}%)`;
+            
+            const predictedSum = predictedBalls.reduce((a, b) => a + b, 0);
+            document.getElementById('predictedSum').textContent = 
+                `${predictedBalls[0]}+${predictedBalls[1]}+${predictedBalls[2]}=${predictedSum}`;
+            
+            const predictedType = predictor.sumToType(predictedSum);
+            if (predictedType !== killResult) {
+                document.getElementById('typeVerification').textContent = "球预测类型与杀组不同 ✓";
+            } else {
+                document.getElementById('typeVerification').textContent = "球预测类型与杀组相同 ✗";
+            }
+            
+            // 显示尾数预测
+            const tailNumbersContainer = document.getElementById('tailNumbers');
+            tailNumbersContainer.innerHTML = '';
+            
+            tailNumbers.forEach(tail => {
+                const tailElement = document.createElement('div');
+                tailElement.className = 'tail-number';
+                tailElement.textContent = tail;
+                tailNumbersContainer.appendChild(tailElement);
+            });
+            
+            // 生成最终结果字符串
+            const nextPeriod = predictor.getNextPeriodNumber(data);
+            const formattedCodes = specialCodes.map(code => code.toString().padStart(2, '0')).join(' ');
+            const finalOutput = `${nextPeriod}杀${killResult} ${finalResult} ${formattedCodes}`;
+            
+            document.getElementById('finalOutput').textContent = finalOutput;
+            
+            // 添加复制功能
+            document.getElementById('finalOutput').addEventListener('click', function() {
+                const textArea = document.createElement('textarea');
+                textArea.value = this.textContent;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                // 显示复制成功提示
+                const originalText = this.textContent;
+                this.textContent = '已复制到剪贴板！';
+                
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 2000);
+            });
+        }
+        
+        // 显示统计信息
+        function displayStatistics(periods) {
+            statsGrid.innerHTML = '';
+            
+            if (!periods || periods.length < 5) {
+                statsGrid.innerHTML = '<div class="stat-item"><div class="stat-title">提示</div><div class="stat-value">数据不足，无法生成统计</div></div>';
+                return;
+            }
+            
+            const recent = periods.slice(0, 10);
+            
+            // 平均和值
+            const sums = recent.map(p => p.sum);
+            const avgSum = sums.reduce((a, b) => a + b, 0) / sums.length;
+            
+            statsGrid.innerHTML += `
+                <div class="stat-item">
+                    <div class="stat-title">平均和值</div>
+                    <div class="stat-value">${avgSum.toFixed(1)}</div>
+                </div>
+            `;
+            
+            // 类型分布
+            const types = recent.map(p => p.type);
+            const typeCounts = {};
+            
+            for (const type of types) {
+                typeCounts[type] = (typeCounts[type] || 0) + 1;
+            }
+            
+            let typeDistribution = '';
+            for (const [type, count] of Object.entries(typeCounts)) {
+                typeDistribution += `${type}:${count} `;
+            }
+            
+            statsGrid.innerHTML += `
+                <div class="stat-item">
+                    <div class="stat-title">类型分布</div>
+                    <div class="stat-value">${typeDistribution}</div>
+                </div>
+            `;
+            
+            // 最新开奖记录
+            let latestResults = '';
+            for (let i = 0; i < Math.min(5, recent.length); i++) {
+                const period = recent[i];
+                const numbersStr = period.numbers.join('+');
+                latestResults += `第${period.period}期: ${numbersStr}=${period.sum} ${period.type}<br>`;
+            }
+            
+            statsGrid.innerHTML += `
+                <div class="stat-item">
+                    <div class="stat-title">最近开奖记录</div>
+                    <div class="stat-value">${latestResults}</div>
+                </div>
+            `;
+            
+            // 尾数分布
+            const tails = recent.map(p => p.sum % 10);
+            const tailCounts = new Array(10).fill(0);
+            
+            for (const tail of tails) {
+                tailCounts[tail]++;
+            }
+            
+            let tailDistribution = '';
+            for (let i = 0; i < 10; i++) {
+                tailDistribution += `${i}:${tailCounts[i]} `;
+            }
+            
+            statsGrid.innerHTML += `
+                <div class="stat-item">
+                    <div class="stat-title">尾数分布</div>
+                    <div class="stat-value">${tailDistribution}</div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
